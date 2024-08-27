@@ -11,8 +11,6 @@ import Foundation
 
 @available(macOS 13.0, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public class CQGMA: ObservableObject {
-    public var spotsUrl:URL? = URL(string: "https://www.cqgma.org/api/spots/")
-    public var refUrl:URL? = URL(string: "https://www.cqgma.org/api/ref/")
     public var apiURL:URL? = URL(string: "https://www.cqgma.org/api/")
     
     public var username: String?
@@ -25,11 +23,13 @@ public class CQGMA: ObservableObject {
     /// - Parameter count: CQGMASpotsCount
     /// - Returns: CQGMASpots
     /// - throws: DecodingError
-    public func get(type: CQGMASpotsType, count: CQGMASpotsCount = .Spots10) async throws {
+    public func get(type: CQGMASpotsType, count: CQGMASpotsCount = .Spots10) async throws -> CQGMASpots {
         
-        guard var url = spotsUrl else {
-            throw CQGMAErrors.SpotsUrlError
+        guard var url = apiURL else {
+            throw CQGMAErrors.URLError
         }
+        
+        url.append(path: "spots")
         
         if type == .GMA {
             url.append(path: count.rawValue)
@@ -40,17 +40,18 @@ public class CQGMA: ObservableObject {
         }
         
         let (data, _) = try await URLSession.shared.data(from: url)
-        self.spots = try JSONDecoder().decode(CQGMASpots.self, from: data)
+        return try JSONDecoder().decode(CQGMASpots.self, from: data)
     }
     
     /// Fetches a CQGMA reference
     /// - Parameter ref: Reference string
     /// - Returns: CQGMARef
-    public func get(ref: String) async throws -> CQGMARef {
-        // TODO: use <T>
-        guard var url = refUrl else {
-            throw CQGMAErrors.RefUrlError
+    public func get(ref: String) async throws -> CQGMARef? {
+        guard var url = apiURL else {
+            throw CQGMAErrors.URLError
         }
+        
+        url.append(path: "ref")
         
         url.append(queryItems: [URLQueryItem(name: ref.replacingOccurrences(of: "\\/", with: "/"), value: "")])
         
@@ -140,5 +141,56 @@ public class CQGMA: ObservableObject {
         }
         
         return nil
+    }
+    
+    /// Loads the requested number of spots (GMA or WWFF)
+    /// into the published property `spots`.
+    /// - Parameter type: GMA or WWFF
+    /// - Parameter count: number of GMA spots
+    /// - Throws
+    public func loadDeep(type: CQGMASpotsType, count: CQGMASpotsCount = .Spots10) async throws {
+        self.spots = try await getDeep(type: type, count: count)
+    }
+    
+    public func load(type: CQGMASpotsType, count: CQGMASpotsCount = .Spots10) async throws {
+        self.spots = try await get(type: type, count: count)
+    }
+    
+    public func send(type: CQGMAApiType, payload: CQGMAAPIPayload) async throws -> CQGMASendSpotResponse {
+        guard var url = apiURL else {
+            throw CQGMAErrors.URLError
+        }
+        
+        url.append(path: "spot")
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "PUT"
+        let encodedPayload = try JSONEncoder().encode(payload)
+        request.httpBody = encodedPayload
+        
+        debugPrint("sending payload (\(payload)) as encoded payload (\(String(data: encodedPayload, encoding: .utf8) ?? "Encoding Error")) to \(url.absoluteString)")
+        
+        let (data, _) = try await URLSession.shared.upload(for: request, from: encodedPayload)
+        print(String(data: data, encoding: .utf8)!)
+        return try JSONDecoder().decode(CQGMASendSpotResponse.self, from: data)
+    }
+    
+    public func send(spotCapsule: CQGMASendSpotCapsule) async throws -> CQGMASendSpotResponse {
+        return try await send(type: .SendSpot, payload: spotCapsule)
+    }
+    
+    public func send(spots: [CQGMASendSpot]) async throws -> CQGMASendSpotResponse {
+        guard let username = username, let password = password else {
+            throw CQGMAErrors.credentialError
+        }
+        
+        let spotCapsule = CQGMASendSpotCapsule(
+            USER: username,
+            PSWD: password,
+            DUMP: 0,
+            SPOT: spots
+        )
+        return try await send(spotCapsule: spotCapsule)
     }
 }

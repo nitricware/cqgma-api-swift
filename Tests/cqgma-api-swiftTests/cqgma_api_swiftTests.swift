@@ -2,29 +2,76 @@ import XCTest
 @testable import cqgma_api_swift
 
 final class cqgma_api_swiftTests: XCTestCase {
-    func testGet10Spots() async throws {
+    func testGet10Spots() async {
+        do {
+            debugPrint(try await CQGMA().get(type: .GMA, count: .Spots10))
+        } catch {
+            debugPrint("[ERROR] in testGet1ßSpots: \(error)")
+        }
+    }
+    
+    func testGet25Spots() async {
+        do {
+            debugPrint(try await CQGMA().get(type: .GMA, count: .Spots25))
+        } catch {
+            debugPrint("[ERROR] in testGet25Spots: \(error)")
+        }
+    }
+    
+    func testGetWWFFSpots() async {
+        do {
+            debugPrint(try await CQGMA().get(type: .WWFF))
+        } catch {
+            debugPrint("[ERROR] in testGetWWFFSpots: \(error)")
+        }
+    }
+    
+    func testGetRef() async {
+        do {
+            debugPrint(try await CQGMA().get(ref: "OE0/NO-1139"))
+        } catch {
+            debugPrint("[ERROR] in testGetRef: \(error)")
+        }
+        
+    }
+    
+    func testDeep() async {
+        do {
+            debugPrint(try await CQGMA().getDeep(type: .GMA))
+        } catch {
+            debugPrint("[ERROR] in testDeep: \(error)")
+        }
+    }
+    
+    func testEmptyRefRespons() async {
+        do {
+            let result = try await CQGMA().get(ref: "OE0/NO-9999")
+            XCTAssertThrowsError(result)
+        } catch {
+            debugPrint("[ERROR] in testEmptyRefRespons: \(error)")
+        }
+    }
+    
+    func testSelfSpot() async {
+        let spot = CQGMASendSpot(
+            MYCALL: "DR0ABC",
+            ACTIVATOR: "DR0ABC",
+            REF: "OE0/NO-1139",
+            KHZ: "14285",
+            MODE: "FM",
+            REMARKS: "CQGMA SWIFT API TEST"
+        )
+        
         let cqgma = CQGMA()
-        try await cqgma.get(type: .GMA, count: .Spots10)
-        print(cqgma.spots)
-    }
-    
-    func testGet25Spots() async throws {
-        let cqgma = CQGMA()
-        try await cqgma.get(type: .GMA, count: .Spots25)
-        print(cqgma.spots)
-    }
-    
-    func testGetWWFFSpots() async throws {
-        let cqgma = CQGMA()
-        try await cqgma.get(type: .WWFF)
-        print(cqgma.spots)
-    }
-    
-    func testGetRef() async throws {
-        print(try await CQGMA().get(ref: "OE0/NO-1139"))
-    }
-    
-    func testDeep() async throws {
-        print(try await CQGMA().getDeep(type: .GMA))
+        
+        cqgma.username = "DR0ABC"
+        cqgma.password = "gma"
+        
+        do {
+            let result = try await cqgma.send(spots: [spot])
+            debugPrint(result)
+        } catch {
+            debugPrint("[ERROR] in testSelfSpot: \(error)")
+        }
     }
 }

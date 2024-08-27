@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CQGMARef: Decodable, CQGMAApiType {
+public struct CQGMARef: Decodable {
     public var reftype: CQGMARefType            //                      -   available in all refs
     public var ref: String?
     public var dxcc: String?

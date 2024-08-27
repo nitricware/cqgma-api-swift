@@ -1,6 +1,6 @@
 import Foundation
 
-struct CQGMASendSpotCapsule {
+public struct CQGMASendSpotCapsule: CQGMAAPIPayload {
     let USER: String
     let PSWD: String
     let DUMP: Int

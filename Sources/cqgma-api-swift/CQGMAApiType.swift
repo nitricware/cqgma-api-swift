@@ -1,3 +1,7 @@
 import Foundation
 
-public protocol CQGMAApiType { }
+public enum CQGMAApiType {
+    case GetSpot
+    case SendSpot
+    case SendLog
+}
