@@ -2,6 +2,8 @@
 
 This is a swift wrapper for the [CQGMA API][1].
 
+This project is under active development. Function signatures are still subject to change.
+
 ## Status
 
 Currently supported features:
@@ -10,5 +12,6 @@ Currently supported features:
 - load last 10, 25 GMA/WWFF spots into a `@Published` property for SwiftUI
 - get GMA reference
 - report a Spot to CQGMA
+- log one or more QSOs (chaser and activator)
 
-[1]: https://cqgma.org
+[1]: https://www.cqgma.org/infoapi.php
