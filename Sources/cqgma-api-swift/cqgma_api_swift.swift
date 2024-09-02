@@ -156,12 +156,12 @@ public class CQGMA: ObservableObject {
         self.spots = try await get(type: type, count: count)
     }
     
-    public func send(type: CQGMAApiType, payload: CQGMAAPIPayload) async throws -> CQGMASendSpotResponse {
+    public func send<T: CQGMAAPIResponse>(type: CQGMAApiType, payload: CQGMAAPIPayload) async throws -> T {
         guard var url = apiURL else {
             throw CQGMAErrors.URLError
         }
         
-        url.append(path: "spot")
+        url.append(path: type.rawValue)
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -173,11 +173,11 @@ public class CQGMA: ObservableObject {
         
         let (data, _) = try await URLSession.shared.upload(for: request, from: encodedPayload)
         print(String(data: data, encoding: .utf8)!)
-        return try JSONDecoder().decode(CQGMASendSpotResponse.self, from: data)
+        return try JSONDecoder().decode(T.self, from: data)
     }
     
     public func send(spotCapsule: CQGMASendSpotCapsule) async throws -> CQGMASendSpotResponse {
-        return try await send(type: .SendSpot, payload: spotCapsule)
+        return try await send<CQGMASendSpotResponse>(type: .SendSpot, payload: spotCapsule)
     }
     
     public func send(spots: [CQGMASendSpot]) async throws -> CQGMASendSpotResponse {
@@ -192,5 +192,18 @@ public class CQGMA: ObservableObject {
             SPOT: spots
         )
         return try await send(spotCapsule: spotCapsule)
+    }
+    
+    public func send(log: CQGMALog) async throws -> CQGMASendLogResponse {
+        return try await send<CQGMASendLogResponse>(type: .SendLog, payload: log)
+    }
+    
+    public func send(qsos: [CQGMAQSO]) async throws -> CQGMASendLogResponse {
+        guard let username = username, let password = password else {
+            throw CQGMAErrors.credentialError
+        }
+        
+        let log = CQGMALog(USER: username, PSWD: password, DUMP: 0, LIVE: 0, LOGC: 0, QSO: qsos)
+        return try await send(log: log)
     }
 }

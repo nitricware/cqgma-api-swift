@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CQGMASendSpotResponse: Decodable {
+public struct CQGMASendSpotResponse: CQGMAAPIResponse {
     public var CHECKLOG: String
     public var DUMP: Bool?
     public var Inserted_Spots: Int
@@ -22,7 +22,7 @@ public struct CQGMASendSpotResponse: Decodable {
         
         CHECKLOG = try values.decode(String.self, forKey: .CHECKLOG)
         
-        if let dump = Bool(try values.decode(String.self, forKey: .DUMP) == "iu on" ? "true" : "false") {
+        if let dump = Bool(try values.decode(String.self, forKey: .DUMP) == "is on" ? "true" : "false") {
             self.DUMP = dump
         }
         

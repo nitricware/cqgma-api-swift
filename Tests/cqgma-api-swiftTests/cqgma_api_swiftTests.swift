@@ -74,4 +74,34 @@ final class cqgma_api_swiftTests: XCTestCase {
             debugPrint("[ERROR] in testSelfSpot: \(error)")
         }
     }
+    
+    func testSendLog() async {
+        let qso = CQGMAQSO(
+            activation: UUID(),         // Could be omitted
+            DATETIME: Date(),           // Could be omitted
+            MYCALL: "DR0ABC",
+            MYLOC: "JN78UG",
+            MAINREF: "OE0/NO-1139",
+            WKDCALL: "DR0ABC",
+            MHZ: 145.5,
+            MODE: "FM",
+            RSTS: "59",
+            RSTR: "59",
+            ACTION: .Add                // Could be omitted
+        )
+        
+        let log = CQGMALog(USER: "DR0ABC", PSWD: "gma", DUMP: 0, LIVE: 0, LOGC: 0, QSO: [qso])
+        
+        let cqgma = CQGMA()
+        
+        cqgma.username = "DR0ABC"
+        cqgma.password = "gma"
+        
+        do {
+            let result = try await cqgma.send(log: log)
+            debugPrint(result)
+        } catch {
+            debugPrint("[ERROR] in textSendLog: \(error)")
+        }
+    }
 }

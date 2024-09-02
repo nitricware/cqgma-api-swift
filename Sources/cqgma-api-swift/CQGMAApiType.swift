@@ -1,7 +1,7 @@
 import Foundation
 
-public enum CQGMAApiType {
-    case GetSpot
-    case SendSpot
-    case SendLog
+public enum CQGMAApiType: String {
+    case GetSpot = "spots"
+    case SendSpot = "spot"
+    case SendLog = "log"
 }
