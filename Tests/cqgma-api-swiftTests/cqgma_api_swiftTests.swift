@@ -76,13 +76,13 @@ final class cqgma_api_swiftTests: XCTestCase {
     }
     
     func testSendLog() async {
-        let qso = CQGMAQSO(
+        let qsoA = CQGMAQSO(
             activation: UUID(),         // Could be omitted
             DATETIME: Date(),           // Could be omitted
             MYCALL: "DR0ABC",
             MYLOC: "JN78UG",
             MAINREF: "OE0/NO-1139",
-            WKDCALL: "DR0ABC",
+            WKDCALL: "OE3FKG",
             MHZ: 145.5,
             MODE: "FM",
             RSTS: "59",
@@ -90,7 +90,20 @@ final class cqgma_api_swiftTests: XCTestCase {
             ACTION: .Add                // Could be omitted
         )
         
-        let log = CQGMALog(USER: "DR0ABC", PSWD: "gma", DUMP: 0, LIVE: 0, LOGC: 0, QSO: [qso])
+        let qsoC = CQGMAQSO(
+            chase: UUID(),
+            DATETIME: Date(),
+            MYCALL: "DR0ABC",
+            MYLOC: "JN78UG",
+            WKDCALL: "OE3FKG",
+            MHZ: 145.5,
+            MODE: "FM",
+            RSTS: "59",
+            RSTR: "59",
+            WKDREF: "OE0/NO-1139"
+        )
+        
+        let log = CQGMALog(USER: "DR0ABC", PSWD: "gma", DUMP: 0, LIVE: 0, LOGC: 0, QSO: [qsoA, qsoC])
         
         let cqgma = CQGMA()
         
@@ -99,6 +112,72 @@ final class cqgma_api_swiftTests: XCTestCase {
         
         do {
             let result = try await cqgma.send(log: log)
+            debugPrint(result)
+        } catch {
+            debugPrint("[ERROR] in textSendLog: \(error)")
+        }
+    }
+    
+    func testLogIUD() async {
+        let cqgma = CQGMA()
+        
+        cqgma.username = "DR0ABC"
+        cqgma.password = "gma"
+        
+        let qsoUUID = UUID()
+        
+        let qsoA = CQGMAQSO(
+            activation: qsoUUID,         // Could be omitted
+            DATETIME: Date(),           // Could be omitted
+            MYCALL: "DR0ABC",
+            MYLOC: "JN78UG",
+            MAINREF: "OE0/NO-1139",
+            WKDCALL: "OE3FKG",
+            MHZ: 145.5,
+            MODE: "FM",
+            RSTS: "59",
+            RSTR: "59",
+            ACTION: .Add                // Could be omitted
+        )
+        
+        do {
+            let result = try await cqgma.send(qsos: [qsoA])
+            debugPrint(result)
+        } catch {
+            debugPrint("[ERROR] in textSendLog: \(error)")
+        }
+        
+        // insert breakpoint and check online log at https://cqgma.org
+        
+        let qsoU = CQGMAQSO(
+            activation: qsoUUID,         // Could be omitted
+            DATETIME: Date(),           // Could be omitted
+            MYCALL: "DR0ABC",
+            MYLOC: "JN47UM",
+            MAINREF: "OE0/ST-1236",
+            WKDCALL: "OE3FKG",
+            MHZ: 145.5,
+            MODE: "FM",
+            RSTS: "59",
+            RSTR: "59",
+            ACTION: .Update                // Could be omitted
+        )
+        
+        do {
+            let result = try await cqgma.send(qsos: [qsoU])
+            debugPrint(result)
+        } catch {
+            debugPrint("[ERROR] in textSendLog: \(error)")
+        }
+        
+        // insert breakpoint and check online log at https://cqgma.org
+        
+        let qsoD = CQGMAQSO(
+            delete: qsoUUID
+        )
+        
+        do {
+            let result = try await cqgma.send(qsos: [qsoD])
             debugPrint(result)
         } catch {
             debugPrint("[ERROR] in textSendLog: \(error)")

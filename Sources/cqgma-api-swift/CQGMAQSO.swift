@@ -52,6 +52,11 @@ public struct CQGMAQSO: CQGMAAPIPayload {
         case SATMODE
     }
     
+    public init(delete ID: UUID) {
+        self.ID = ID
+        self.ACTION = .Delete
+    }
+    
     public init(
         activation ID: UUID = UUID(),
         DATETIME: Date = Date(),

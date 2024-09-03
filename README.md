@@ -8,10 +8,10 @@ This project is under active development. Function signatures are still subject 
 
 Currently supported features:
 
-- get last 10, 25 GMA/WWFF spots
-- load last 10, 25 GMA/WWFF spots into a `@Published` property for SwiftUI
-- get GMA reference
-- report a Spot to CQGMA
-- log one or more QSOs (chaser and activator)
+- [Spotting] get last 10, 25 GMA/WWFF spots
+- [Spotting] load last 10, 25 GMA/WWFF spots into a `@Published` property for SwiftUI
+- [References] get GMA reference
+- [Spotting] report a Spot to CQGMA
+- [Logging] insert, update and delete one or more QSOs (chaser and activator)
 
 [1]: https://www.cqgma.org/infoapi.php
