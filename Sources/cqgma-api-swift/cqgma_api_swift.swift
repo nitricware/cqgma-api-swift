@@ -29,14 +29,14 @@ public class CQGMA: ObservableObject {
             throw CQGMAErrors.URLError
         }
         
-        url.append(path: "spots")
+        url.append(path: CQGMAApiType.GetSpots.rawValue)
         
         if type == .GMA {
             url.append(path: count.rawValue)
         }
         
         if type == .WWFF {
-            url.append(path: "wwff")
+            url.append(path: CQGMAApiType.GetWWFF.rawValue)
         }
         
         let (data, _) = try await URLSession.shared.data(from: url)
@@ -51,7 +51,7 @@ public class CQGMA: ObservableObject {
             throw CQGMAErrors.URLError
         }
         
-        url.append(path: "ref")
+        url.append(path: CQGMAApiType.GetRef.rawValue)
         
         url.append(queryItems: [URLQueryItem(name: ref.replacingOccurrences(of: "\\/", with: "/"), value: "")])
         
@@ -63,7 +63,7 @@ public class CQGMA: ObservableObject {
     /// - Parameter ref: Reference string
     public func getRaw(ref: String) async throws -> Data{
         return try await getRaw(
-            path: ["ref"],
+            path: [CQGMAApiType.GetRef.rawValue],
             queryItems: [URLQueryItem(name: ref.replacingOccurrences(of: "\\/", with: "/"), value: "")]
         )
     }
@@ -71,7 +71,7 @@ public class CQGMA: ObservableObject {
     /// Get the raw data of GMA spots API request
     /// - Parameter spots: CQGMASpotsCount
     public func getRaw(spots: CQGMASpotsCount) async throws -> Data {
-        return try await getRaw(path: ["spots", spots.rawValue])
+        return try await getRaw(path: [CQGMAApiType.GetSpots.rawValue, spots.rawValue])
     }
     
     /// Get the raw data of a GMA spots (GMA or WWFF) API request
@@ -82,7 +82,7 @@ public class CQGMA: ObservableObject {
         case .GMA:
             return try await getRaw(spots: count)
         case .WWFF:
-            return try await getRaw(path: ["spots", "wwff"])
+            return try await getRaw(path: [CQGMAApiType.GetSpots.rawValue, CQGMAApiType.GetWWFF.rawValue])
         }
     }
     
@@ -114,7 +114,7 @@ public class CQGMA: ObservableObject {
         case .GMA:
             rawSpots =  try await getRaw(spots: count)
         case .WWFF:
-            rawSpots =  try await getRaw(path: ["spots", "wwff"])
+            rawSpots =  try await getRaw(path: [CQGMAApiType.GetSpots.rawValue, CQGMAApiType.GetWWFF.rawValue])
         }
         
         // "REF": "TF\/VF-085",
@@ -172,8 +172,15 @@ public class CQGMA: ObservableObject {
         debugPrint("sending payload (\(payload)) as encoded payload (\(String(data: encodedPayload, encoding: .utf8) ?? "Encoding Error")) to \(url.absoluteString)")
         
         let (data, _) = try await URLSession.shared.upload(for: request, from: encodedPayload)
-        print(String(data: data, encoding: .utf8)!)
-        return try JSONDecoder().decode(T.self, from: data)
+        /**
+         CQGMA API response returns corrupt JSON when
+         deleting a QSO. It prepends some arbitrary text
+         describing the affected data sets.
+         `CQGMAHelper.removeArbitraryText(from: data)`
+         removes that text and returns plain JSON. This
+         approach is somewhat error prone, of ocurse.
+         */
+        return try JSONDecoder().decode(T.self, from: CQGMAHelper.removeArbitraryText(from: data) ?? data)
     }
     
     public func send(spotCapsule: CQGMASendSpotCapsule) async throws -> CQGMASendSpotResponse {

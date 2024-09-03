@@ -79,4 +79,15 @@ public struct CQGMAHelper {
         
         return String(format: "%04d", y)
     }
+    
+    @available(macOS 13.0, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    public static func removeArbitraryText(from data:Data) -> Data? {
+        let regex = #/(\{[\"A-Za-z0-9\:\, _]+\})/#
+        if let string = String(data: data, encoding: .utf8) {
+            let matches = string.matches(of: regex)
+            return String(matches[0].output.0).data(using: .utf8)
+        } else {
+            return nil
+        }
+    }
 }
