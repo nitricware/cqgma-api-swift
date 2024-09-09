@@ -183,4 +183,22 @@ final class cqgma_api_swiftTests: XCTestCase {
             debugPrint("[ERROR] in textSendLog: \(error)")
         }
     }
+    
+    func testDelNonExistent() async {
+        let cqgma = CQGMA()
+        
+        cqgma.username = "DR0ABC"
+        cqgma.password = "gma"
+        
+        let qsoD = CQGMAQSO(
+            delete: UUID()
+        )
+        
+        do {
+            let result = try await cqgma.send(qsos: [qsoD])
+            debugPrint(result)
+        } catch {
+            debugPrint("[ERROR] in textSendLog: \(error)")
+        }
+    }
 }
