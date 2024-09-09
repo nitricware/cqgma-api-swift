@@ -1,27 +1,27 @@
 import Foundation
 
 public struct CQGMAQSO: CQGMAAPIPayload {
-    public let ID: UUID?
-    public var DATETIME: Date?
+    public let ID: UUID?                            // deviation to JSON
+    public var DATETIME: Date?                      // deviation to JSON
     public var MYCALL: String?
     public var OPERATOR: String?
     public var MYLOC: String?
-    public var MAINREF: String?                 // TODO: Require CQGMAReference object
+    public var MAINREF: String?
     public var XREF1: String?
     public var XREF2: String?
     public var XREF3: String?
     public var XREF4: String?
     public var WKDCALL: String?
-    public var MHZ: Double?
-    public var BAND: String?
-    public var MODE: String?
-    public var RSTS: String?
-    public var RSTR: String?
+    public var MHZ: Double?                         // deviation to JSON
+    public var BAND: ADIFBand?
+    public var MODE: ADIFMode?
+    public var RSTS: Int?                           // deviation to JSON
+    public var RSTR: Int?                           // deviation to JSON
     public var LOCATOR: String?
-    public var WKDREF: String?                  // TODO: Require CQGMAReference object
-    public var PROPAGATION: String?
+    public var WKDREF: String?
+    public var PROPAGATION: ADIFPropagation?        // deviation to JSON
     public var REMARKS: String?
-    public var ACTION: CQGMALoggingAction
+    public var ACTION: CQGMALoggingAction           // deviation to JSON
     public var WKDDXCC: String?
     public var SATNAME: String?
     public var SATMODE: String?
@@ -45,6 +45,8 @@ public struct CQGMAQSO: CQGMAAPIPayload {
         case RSTS
         case RSTR
         case LOCATOR
+        case PROPAGATION
+        case REMARKS
         case WKDREF
         case ACTION
         case WKDDXCC
@@ -65,9 +67,9 @@ public struct CQGMAQSO: CQGMAAPIPayload {
         MAINREF: String,
         WKDCALL: String,
         MHZ: Double,
-        MODE: String,
-        RSTS: String,
-        RSTR: String,
+        MODE: ADIFMode,
+        RSTS: Int,
+        RSTR: Int,
         ACTION: CQGMALoggingAction = .Add
     ) {
         self.ID = ID
@@ -90,9 +92,9 @@ public struct CQGMAQSO: CQGMAAPIPayload {
         MYLOC: String,
         WKDCALL: String,
         MHZ: Double,
-        MODE: String,
-        RSTS: String,
-        RSTR: String,
+        MODE: ADIFMode,
+        RSTS: Int,
+        RSTR: Int,
         WKDREF: String,
         ACTION: CQGMALoggingAction = .Add
     ) {
@@ -147,10 +149,17 @@ public struct CQGMAQSO: CQGMAAPIPayload {
             try container.encodeIfPresent(String(mhz), forKey: .MHZ)
         }
         
-        try container.encodeIfPresent(self.BAND, forKey: .BAND)
-        try container.encodeIfPresent(self.MODE, forKey: .MODE)
-        try container.encodeIfPresent(self.RSTS, forKey: .RSTS)
-        try container.encodeIfPresent(self.RSTR, forKey: .RSTR)
+        if let band = self.BAND {
+            try container.encodeIfPresent(band.rawValue, forKey: .BAND)
+        }
+        
+        if let mode = self.MODE {
+            try container.encodeIfPresent(mode.rawValue, forKey: .MODE)
+        }
+        
+        try container.encodeIfPresent(String(self.RSTS ?? 0), forKey: .RSTS)
+        try container.encodeIfPresent(String(self.RSTR ?? 0), forKey: .RSTR)
+        
         try container.encodeIfPresent(self.LOCATOR, forKey: .LOCATOR)
         try container.encodeIfPresent(self.WKDREF, forKey: .WKDREF)
         
