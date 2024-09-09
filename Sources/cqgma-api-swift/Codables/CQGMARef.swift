@@ -66,7 +66,6 @@ public struct CQGMARef: Decodable {
     public var lat2: Double?                    // deviation to JSON
     public var lng2: Double?                    // deviation to JSON
     
-    
     private enum CodingKeys: String, CodingKey {
         case reftype
         case ref
